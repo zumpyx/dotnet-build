@@ -59,9 +59,7 @@
     "branch": null,
     "enabled": true,
     "project": {
-      "path": "winPEAS/winPEASexe",
-      "file": "winPEAS.csproj",
-      "framework": "v4.8"
+      "buildScript": "scripts/tools/build-winpeas.ps1"
     }
   }
 ]
