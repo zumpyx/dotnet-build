@@ -21,7 +21,10 @@
     "name": "SharpHound",
     "repository": "https://github.com/BloodHoundAD/SharpHound.git",
     "branch": null,
-    "enabled": true
+    "enabled": true,
+    "project": {
+      "tool": "msbuild"
+    }
   },
   {
     "name": "Certify",
