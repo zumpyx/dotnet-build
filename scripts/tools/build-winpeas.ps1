@@ -25,9 +25,9 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location $Src   # Dotfuscator XML paths are relative to the repo root
 
-function Invoke-Native([string]$File, [string[]]$Args, [string]$Step) {
+function Invoke-Native([string]$File, [string[]]$ExeArgs, [string]$Step) {
     Write-Host "  -> $Step"
-    & $File @Args 2>&1 | Write-Host
+    & $File @ExeArgs 2>&1 | Write-Host
     if ($LASTEXITCODE -ne 0) { throw "$Step failed (exit $LASTEXITCODE)" }
 }
 
