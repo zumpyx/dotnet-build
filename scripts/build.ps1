@@ -170,7 +170,7 @@ function Build-LegacyProject {
         [Parameter(Mandatory)][string]$ProjectFile,
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$ToolStaging,
-        [Parameter(Mandatory)][string[]]$ExtraArgs
+        [AllowEmptyCollection()][AllowNull()][string[]]$ExtraArgs = @()
     )
 
     $cfg = if ($ProjCfg -and $ProjCfg.configuration) { [string]$ProjCfg.configuration } else { 'Release' }
@@ -230,7 +230,7 @@ function Build-SdkProject {
         [Parameter(Mandatory)][string]$ProjectFile,
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$ToolStaging,
-        [Parameter(Mandatory)][string[]]$ExtraArgs
+        [AllowEmptyCollection()][AllowNull()][string[]]$ExtraArgs = @()
     )
 
     $cfg    = if ($ProjCfg -and $ProjCfg.configuration) { [string]$ProjCfg.configuration } else { 'Release' }
