@@ -72,8 +72,10 @@ $netDir = Join-Path (Split-Path $env:GITHUB_WORKSPACE -Parent) 'artifacts-worktr
 git fetch origin $ArtifactsBranch --depth=1 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) {
     git worktree add $netDir $ArtifactsBranch 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git worktree add $ArtifactsBranch failed" }
 } else {
     git worktree add --orphan -b $ArtifactsBranch $netDir 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git worktree add --orphan $ArtifactsBranch failed" }
 }
 
 Get-ChildItem $netDir -Force |
@@ -85,10 +87,21 @@ Copy-Item -Path "$stagingAbs\*" -Destination $netDir -Recurse -Force
 Push-Location $netDir
 try {
     git add -A
+    if ($LASTEXITCODE -ne 0) { throw 'git add failed in artifacts worktree' }
     git diff --staged --quiet
     if ($LASTEXITCODE -ne 0) {
-        git commit -m "build: update artifacts $((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')) UTC" 2>&1 | Out-Null
-        git push origin $ArtifactsBranch 2>&1 | Out-Null
+        git commit -m "build: update artifacts $((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')) UTC"
+        if ($LASTEXITCODE -ne 0) { throw 'git commit failed in artifacts worktree' }
+
+        git push origin $ArtifactsBranch
+        if ($LASTEXITCODE -ne 0) {
+            # Lost a race against a concurrent run — rebase on its push and retry once
+            Write-Warning 'push rejected, retrying on top of the latest remote state'
+            git pull --rebase origin $ArtifactsBranch
+            if ($LASTEXITCODE -ne 0) { throw 'git pull --rebase failed' }
+            git push origin $ArtifactsBranch
+            if ($LASTEXITCODE -ne 0) { throw 'git push failed' }
+        }
         Write-Host "Pushed artifacts to $ArtifactsBranch branch"
     } else {
         Write-Host "No changes to push to $ArtifactsBranch"
@@ -103,8 +116,10 @@ try {
 git add $StatusFile
 git diff --staged --quiet
 if ($LASTEXITCODE -ne 0) {
-    git commit -m 'chore: update build status [skip ci]' 2>&1 | Out-Null
-    git push origin HEAD 2>&1 | Out-Null
+    git commit -m 'chore: update build status [skip ci]'
+    if ($LASTEXITCODE -ne 0) { throw 'git commit failed for status.json' }
+    git push origin HEAD
+    if ($LASTEXITCODE -ne 0) { throw 'git push failed for status.json' }
     Write-Host "$StatusFile committed"
 } else {
     Write-Host "$StatusFile unchanged, nothing to commit"
