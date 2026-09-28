@@ -3,125 +3,161 @@
     "name": "Rubeus",
     "repoUrl": "https://github.com/GhostPack/Rubeus.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:32:41Z",
-    "lastSuccess": "2026-09-21T07:32:41Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:44:25Z",
+    "lastSuccess": "2026-09-28T01:44:25Z",
     "projectFile": "Rubeus.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "Seatbelt",
     "repoUrl": "https://github.com/GhostPack/Seatbelt.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:32:42Z",
-    "lastSuccess": "2026-09-21T07:33:03Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:44:43Z",
+    "lastSuccess": "2026-09-28T01:44:43Z",
     "projectFile": "Seatbelt.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "SharpUp",
     "repoUrl": "https://github.com/GhostPack/SharpUp.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:32:43Z",
-    "lastSuccess": "2026-09-21T07:33:07Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:44:48Z",
+    "lastSuccess": "2026-09-28T01:44:48Z",
     "projectFile": "SharpUp.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "SharpHound",
     "repoUrl": "https://github.com/BloodHoundAD/SharpHound.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:32:43Z",
-    "lastSuccess": "2026-09-21T07:33:09Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:44:50Z",
+    "lastSuccess": "2026-09-28T01:44:50Z",
     "projectFile": "Sharphound.sln",
-    "engine": "dotnet",
-    "framework": null,
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "engine": "msbuild",
+    "framework": "v4.8",
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "Certify",
     "repoUrl": "https://github.com/GhostPack/Certify.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:33:13Z",
-    "lastSuccess": "2026-09-21T07:34:05Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:45:43Z",
+    "lastSuccess": "2026-09-28T01:45:43Z",
     "projectFile": "Certify.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "ADSearch",
     "repoUrl": "https://github.com/tomcarver16/ADSearch.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:33:26Z",
-    "lastSuccess": "2026-09-21T07:34:19Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:45:58Z",
+    "lastSuccess": "2026-09-28T01:45:58Z",
     "projectFile": "ADSearch.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "SharpDPAPI",
     "repoUrl": "https://github.com/GhostPack/SharpDPAPI.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:33:30Z",
-    "lastSuccess": "2026-09-21T07:34:25Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:46:06Z",
+    "lastSuccess": "2026-09-28T01:46:06Z",
     "projectFile": "SharpDPAPI.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "SweetPotato",
     "repoUrl": "https://github.com/CCob/SweetPotato.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:33:30Z",
-    "lastSuccess": "2026-09-21T07:34:32Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:46:15Z",
+    "lastSuccess": "2026-09-28T01:46:15Z",
     "projectFile": "SweetPotato.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "SharpSCCM",
     "repoUrl": "https://github.com/Mayyhem/SharpSCCM.git",
     "branch": null,
-    "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:33:34Z",
-    "lastSuccess": "2026-09-21T07:34:43Z",
+    "buildStatus": "success",
+    "lastUpdated": "2026-09-28T01:46:28Z",
+    "lastSuccess": "2026-09-28T01:46:28Z",
     "projectFile": "SharpSCCM.sln",
     "engine": "msbuild",
     "framework": "v4.8",
-    "archs": [],
-    "error": "Cannot bind argument to parameter 'ExtraArgs' because it is an empty array."
+    "archs": [
+      "any",
+      "x86",
+      "x64"
+    ],
+    "error": null
   },
   {
     "name": "winPEAS",
     "repoUrl": "https://github.com/peass-ng/PEASS-ng.git",
     "branch": null,
     "buildStatus": "failed",
-    "lastUpdated": "2026-09-28T01:33:39Z",
+    "lastUpdated": "2026-09-28T01:46:46Z",
     "lastSuccess": null,
     "projectFile": null,
     "engine": "custom",
