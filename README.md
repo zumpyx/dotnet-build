@@ -93,6 +93,7 @@ without them keep working unchanged.
 | `configuration` | `Release` | Build configuration |
 | `arguments` | `[]` | Extra arguments passed to msbuild/dotnet |
 | `buildCommand` | — | Fully custom command line, see below |
+| `buildScript` | — | Repo-relative PowerShell script for complex pipelines, see below |
 
 ### `artifacts` fields
 
@@ -114,6 +115,31 @@ directory) are substituted before execution:
     "enabled": true,
     "project": {
         "buildCommand": "cmd /c \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe\" {src}\\BadAssTools.sln /p:Configuration=Release /p:OutputPath={out}"
+    }
+}
+```
+
+### Custom build scripts
+
+For multi-step pipelines (restore → build → obfuscate → collect), add a
+PowerShell script to this repository and reference it with
+`project.buildScript`. It is invoked as:
+
+```powershell
+pwsh -NoProfile -File <script> -Src <cloned upstream repo> -Out <empty output dir>
+```
+
+Put the final artifacts into `-Out`; they are collected per `artifacts`
+globs, keeping their file names. Example (`scripts/tools/build-winpeas.ps1`
+builds the obfuscated `_ofs` winPEAS binaries like the official PEASS-ng CI):
+
+```json
+{
+    "name": "winPEAS",
+    "repository": "https://github.com/peass-ng/PEASS-ng.git",
+    "enabled": true,
+    "project": {
+        "buildScript": "scripts/tools/build-winpeas.ps1"
     }
 }
 ```
