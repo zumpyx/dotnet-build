@@ -15,18 +15,23 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: dotnet-build
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      # -- Checkout ------------------------------------------------------------
+      # ── Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # full history - publish.ps1 pushes to the artifacts branch
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # -- Toolchain -----------------------------------------------------------
+      # ── Toolchain ─────────────────────────────────────────────────────────
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
@@ -41,13 +46,13 @@ jobs:
             8.0.x
             9.0.x
 
-      # -- Build all enabled tools ---------------------------------------------
+      # ── Build all enabled tools ───────────────────────────────────────────
       - name: Build tools
         id: build_tools
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/build.ps1
 
-      # -- Publish artifacts + status ------------------------------------------
+      # ── Publish artifacts + status ────────────────────────────────────────
       - name: Publish artifacts
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/publish.ps1
