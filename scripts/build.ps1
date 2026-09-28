@@ -245,7 +245,7 @@ function Build-SdkProject {
     & dotnet @dotnetArgs 2>&1 | Write-Host
     if ($LASTEXITCODE -ne 0) { return @() }
 
-    $staged = Copy-Artifacts $outDir $toolStaging $ArtifactCfg 'bin'
+    $staged = Copy-Artifacts $outDir $ToolStaging $ArtifactCfg 'bin'
     if ($staged -eq 0) { return @() }
     return @('bin')
 }
@@ -322,25 +322,44 @@ foreach ($tool in $config) {
         $toolStaging = Join-Path $StagingDir $name
         New-Item -ItemType Directory -Path $toolStaging -Force | Out-Null
 
-        # ── Fully custom build command ──────────────────────────────────────
-        if ($projCfg -and $projCfg.buildCommand) {
+        # ── Fully custom build (script or command) ──────────────────────────
+        if ($projCfg -and ($projCfg.buildScript -or $projCfg.buildCommand)) {
             $result.engine = 'custom'
             $customOut = [IO.Path]::GetFullPath((Join-Path $BuildOutDir "$name/custom"))
             New-Item -ItemType Directory -Path $customOut -Force | Out-Null
 
-            $cmdLine = [string]$projCfg.buildCommand
-            $cmdLine = $cmdLine.Replace('{src}', "`"$([IO.Path]::GetFullPath($srcDir))`"")
-            $cmdLine = $cmdLine.Replace('{out}', "`"$customOut`"")
+            if ($projCfg.buildScript) {
+                # Repo-relative PowerShell script, invoked with -Src / -Out parameters
+                $scriptRel = [string]$projCfg.buildScript
+                $repoRoot  = Split-Path $PSScriptRoot -Parent
+                $scriptPath = $scriptRel
+                if (-not ([IO.Path]::IsPathRooted($scriptPath))) { $scriptPath = Join-Path $repoRoot $scriptRel }
+                $scriptPath = [IO.Path]::GetFullPath($scriptPath)
+                if (-not (Test-Path $scriptPath)) { throw "buildScript '$scriptRel' not found in this repository" }
 
-            Write-Step "custom command: $cmdLine"
-            # Write to a temporary .cmd file to avoid PowerShell native-argument quoting issues
-            $tmpCmd = Join-Path ([IO.Path]::GetTempPath()) "dotnet-build-$name.cmd"
-            Set-Content -Path $tmpCmd -Value $cmdLine -Encoding ASCII
-            try {
-                & cmd /c $tmpCmd 2>&1 | Write-Host
-                if ($LASTEXITCODE -ne 0) { throw "custom build command failed (exit $LASTEXITCODE)" }
-            } finally {
-                Remove-Item $tmpCmd -Force -ErrorAction SilentlyContinue
+                Write-Step "custom script: $scriptRel"
+                $pwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+                if (-not $pwshExe) { $pwshExe = (Get-Command powershell.exe -ErrorAction SilentlyContinue | Select-Object -First 1).Source }
+                if (-not $pwshExe) { throw 'neither pwsh nor powershell is available to run the build script' }
+                & $pwshExe -NoProfile -File $scriptPath `
+                    -Src ([IO.Path]::GetFullPath($srcDir)) `
+                    -Out $customOut 2>&1 | Write-Host
+                if ($LASTEXITCODE -ne 0) { throw "build script '$scriptRel' failed (exit $LASTEXITCODE)" }
+            } else {
+                $cmdLine = [string]$projCfg.buildCommand
+                $cmdLine = $cmdLine.Replace('{src}', "`"$([IO.Path]::GetFullPath($srcDir))`"")
+                $cmdLine = $cmdLine.Replace('{out}', "`"$customOut`"")
+
+                Write-Step "custom command: $cmdLine"
+                # Write to a temporary .cmd file to avoid PowerShell native-argument quoting issues
+                $tmpCmd = Join-Path ([IO.Path]::GetTempPath()) "dotnet-build-$name.cmd"
+                Set-Content -Path $tmpCmd -Value $cmdLine -Encoding ASCII
+                try {
+                    & cmd /c $tmpCmd 2>&1 | Write-Host
+                    if ($LASTEXITCODE -ne 0) { throw "custom build command failed (exit $LASTEXITCODE)" }
+                } finally {
+                    Remove-Item $tmpCmd -Force -ErrorAction SilentlyContinue
+                }
             }
 
             $staged = Copy-Artifacts $customOut $toolStaging $artCfg 'bin'
