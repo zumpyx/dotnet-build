@@ -41,8 +41,8 @@ Invoke-Native nuget @('restore', $sln) 'nuget restore'
 
 foreach ($platform in @('x64', 'x86', 'Any CPU')) {
     Invoke-Native msbuild @(
-        '-m', "`"$sln`"", '/t:Rebuild',
-        '/p:Configuration=Release', "/p:Platform=`"$platform`"",
+        '-m', $sln, '/t:Rebuild',
+        '/p:Configuration=Release', "/p:Platform=$platform",
         '/p:UseSharedCompilation=false'
     ) "msbuild [$platform]"
 }
@@ -62,7 +62,7 @@ Copy-Item 'DotfuscatorCE\license\*' $licDir -Force -ErrorAction SilentlyContinue
 
 # ── 4. Obfuscate ────────────────────────────────────────────────────────────
 foreach ($arch in @('x64', 'x86', 'any')) {
-    Invoke-Native 'DotfuscatorCE\dotfuscator.exe' @("`"$ofsDir\$arch.xml`"") "dotfuscator [$arch]"
+    Invoke-Native 'DotfuscatorCE\dotfuscator.exe' @("$ofsDir\$arch.xml") "dotfuscator [$arch]"
 }
 
 # ── 5. Collect the *_ofs artifacts ──────────────────────────────────────────
