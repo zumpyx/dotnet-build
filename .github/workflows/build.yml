@@ -1,4 +1,4 @@
-name: Build .NET 4.8 Tools
+name: Build .NET Tools
 
 on:
   schedule:
@@ -9,6 +9,8 @@ on:
       - main
     paths:
       - config.json
+      - scripts/**
+      - .github/workflows/build.yml
 
 permissions:
   contents: write
@@ -18,280 +20,34 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # ── Checkout ──────────────────────────────────────────────────────────
+      # -- Checkout ------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0   # full history - publish.ps1 pushes to the artifacts branch
 
-      # ── Toolchain ─────────────────────────────────────────────────────────
+      # -- Toolchain -----------------------------------------------------------
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
 
-      # ── Build all enabled tools ───────────────────────────────────────────
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+            9.0.x
+
+      # -- Build all enabled tools ---------------------------------------------
       - name: Build tools
         id: build_tools
         shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Continue'
+        run: pwsh -NoProfile -File ./scripts/build.ps1
 
-          # ── Helpers ──────────────────────────────────────────────────────
-          function Find-ProjectFile([string]$root) {
-            # Prefer solution files; exclude test projects
-            $sln = Get-ChildItem $root -Recurse -Filter '*.sln' -ErrorAction SilentlyContinue |
-              Select-Object -First 1
-            if ($sln) { return $sln.FullName }
-
-            $csproj = Get-ChildItem $root -Recurse -Filter '*.csproj' -ErrorAction SilentlyContinue |
-              Where-Object { $_.Name -notmatch '(?i)(test|sample|example|demo)' } |
-              Select-Object -First 1
-            if ($csproj) { return $csproj.FullName }
-
-            return $null
-          }
-
-          function Invoke-NuGetRestore([string]$projectFile) {
-            $hasPackages = Get-ChildItem (Split-Path $projectFile -Parent) `
-              -Recurse -Filter 'packages.config' -ErrorAction SilentlyContinue |
-              Select-Object -First 1
-            if ($hasPackages) {
-              Write-Host "  Running nuget restore..."
-              nuget restore $projectFile 2>&1 | Write-Host
-            }
-          }
-
-          # ── Load config / status ─────────────────────────────────────────
-          $config = Get-Content config.json -Raw | ConvertFrom-Json
-          $statusMap = @{}
-          try {
-            $existing = Get-Content status.json -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
-            if ($existing) {
-              foreach ($entry in $existing) { $statusMap[$entry.name] = $entry }
-            }
-          } catch {}
-
-          # Staging directory (will become the NET4.8 branch root)
-          $staging = 'staging'
-          New-Item -ItemType Directory -Path $staging -Force | Out-Null
-
-          $buildResults = [System.Collections.Generic.List[object]]::new()
-
-          foreach ($tool in $config) {
-            if (-not $tool.enabled) {
-              Write-Host "Skipping disabled tool: $($tool.name)"
-              continue
-            }
-
-            $name    = $tool.name
-            $repoUrl = $tool.repository
-            $branch  = if ($tool.branch) { $tool.branch } else { $null }
-            $now     = (Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
-
-            # Carry forward last known success
-            $prevSuccess = if ($statusMap.ContainsKey($name)) { $statusMap[$name].lastSuccess } else { $null }
-
-            $result = [ordered]@{
-              name        = $name
-              repoUrl     = $repoUrl
-              branch      = $branch
-              buildStatus = 'failed'
-              lastUpdated = $now
-              lastSuccess = $prevSuccess
-            }
-
-            Write-Host ""
-            Write-Host "════════════════════════════════════════"
-            Write-Host "  Building: $name"
-            Write-Host "  Repo:     $repoUrl"
-            if ($branch) { Write-Host "  Branch:   $branch" }
-            Write-Host "════════════════════════════════════════"
-
-            try {
-              # Clone
-              $srcDir = "src/$name"
-              if ($branch) {
-                git clone --depth 1 --branch $branch $repoUrl $srcDir 2>&1 | Write-Host
-              } else {
-                git clone --depth 1 $repoUrl $srcDir 2>&1 | Write-Host
-              }
-              if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
-
-              # Locate project / solution
-              $projFile = Find-ProjectFile $srcDir
-              if (-not $projFile) { throw "No .sln or .csproj found under $srcDir" }
-              Write-Host "  Project file: $projFile"
-
-              # NuGet restore (packages.config style)
-              Invoke-NuGetRestore $projFile
-
-              # Output directory for this tool's binaries
-              $toolStaging = "$staging/$name"
-              New-Item -ItemType Directory -Path $toolStaging -Force | Out-Null
-
-              $anyBinaryBuilt = $false
-
-              # Three platform targets
-              $targets = @(
-                @{ PlatformTarget = 'AnyCPU'; Suffix = 'any' },
-                @{ PlatformTarget = 'x86';    Suffix = 'x86' },
-                @{ PlatformTarget = 'x64';    Suffix = 'x64' }
-              )
-
-              foreach ($t in $targets) {
-                $outDir = [IO.Path]::GetFullPath("build_out/$name/$($t.Suffix)")
-                New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-
-                Write-Host "  → Building $name [$($t.Suffix)] ..."
-
-                $args = @(
-                  $projFile,
-                  '/t:Rebuild',
-                  '/p:Configuration=Release',
-                  '/p:TargetFrameworkVersion=v4.8',
-                  "/p:PlatformTarget=$($t.PlatformTarget)",
-                  "/p:OutputPath=$outDir",
-                  '/p:AllowUnsafeBlocks=true',
-                  '/p:Nullable=disable',
-                  '/m',
-                  '/nologo',
-                  '/verbosity:minimal',
-                  '/restore'
-                )
-
-                msbuild @args 2>&1 | Write-Host
-
-                if ($LASTEXITCODE -eq 0) {
-                  $exe = Get-ChildItem $outDir -Filter '*.exe' -ErrorAction SilentlyContinue |
-                    Where-Object { $_.Name -notmatch '\.vshost\.exe$' } |
-                    Sort-Object Length -Descending |
-                    Select-Object -First 1
-
-                  if ($exe) {
-                    $dest = "$toolStaging/$name.$($t.Suffix).exe"
-                    Copy-Item $exe.FullName $dest
-                    Write-Host "    ✔ $dest"
-                    $anyBinaryBuilt = $true
-                  } else {
-                    Write-Warning "    Build succeeded but no .exe found in $outDir"
-                  }
-                } else {
-                  Write-Warning "    ✘ Build failed for $name [$($t.Suffix)]"
-                }
-              }
-
-              if ($anyBinaryBuilt) {
-                $result.buildStatus = 'success'
-                $result.lastSuccess = $now
-                Write-Host "  ✔ $name build complete"
-              } else {
-                Write-Warning "  ✘ No binaries produced for $name"
-              }
-            } catch {
-              Write-Warning "  ✘ Error building ${name}: $_"
-            }
-
-            $buildResults.Add([PSCustomObject]$result)
-          }
-
-          # ── Persist updated status ────────────────────────────────────────
-          $buildResults | ConvertTo-Json -Depth 10 | Set-Content status.json -Encoding UTF8
-          Write-Host ""
-          Write-Host "Build results saved to status.json"
-
-      # ── Generate README for NET4.8 branch ────────────────────────────────
-      - name: Generate NET4.8 README
+      # -- Publish artifacts + status ------------------------------------------
+      - name: Publish artifacts
         shell: pwsh
-        run: |
-          $status = Get-Content status.json -Raw | ConvertFrom-Json
-
-          $lines = @(
-            '# NET4.8 Build Artifacts',
-            '',
-            'Compiled .NET 4.8 binaries built automatically from upstream repositories.',
-            'Each tool ships in three flavours:',
-            '',
-            '| Suffix | CPU Target |',
-            '|--------|------------|',
-            '| `.any.exe` | AnyCPU — JIT selects 32/64-bit at runtime |',
-            '| `.x86.exe` | Forced 32-bit |',
-            '| `.x64.exe` | Forced 64-bit |',
-            '',
-            '## Build Status',
-            '',
-            '| Tool | Repository | Status | Last Successful Build |',
-            '|------|-----------|--------|----------------------|'
-          )
-
-          foreach ($tool in $status) {
-            $icon = if ($tool.buildStatus -eq 'success') { '✅ Success' } else { '❌ Failed' }
-            $lastOk = if ($tool.lastSuccess) { $tool.lastSuccess } else { 'Never' }
-            $lines += "| $($tool.name) | [$($tool.name)]($($tool.repoUrl)) | $icon | $lastOk |"
-          }
-
-          $lines += ''
-          $lines += "_Last updated: $(Get-Date -AsUTC -Format 'yyyy-MM-dd HH:mm') UTC_"
-
-          $lines -join "`n" | Set-Content staging/README.md -Encoding UTF8
-          Write-Host "staging/README.md written"
-
-      # ── Push artifacts to NET4.8 branch ──────────────────────────────────
-      - name: Push artifacts to NET4.8 branch
-        shell: pwsh
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          $stagingAbs = Resolve-Path 'staging' | Select-Object -ExpandProperty Path
-
-          # Prepare NET4.8 worktree (use absolute path outside the workspace)
-          $net48Dir = Join-Path (Split-Path $env:GITHUB_WORKSPACE -Parent) 'net48-worktree'
-          git fetch origin NET4.8 --depth=1 2>&1 | Out-Null
-          if ($LASTEXITCODE -eq 0) {
-            git worktree add $net48Dir NET4.8
-          } else {
-            git worktree add --orphan -b NET4.8 $net48Dir
-          }
-
-          # Clear old content (keep .git metadata managed by worktree)
-          Get-ChildItem $net48Dir -Force |
-            Where-Object { $_.Name -ne '.git' } |
-            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-
-          # Copy new artifacts
-          Copy-Item -Path "$stagingAbs\*" -Destination $net48Dir -Recurse -Force
-
-          Push-Location $net48Dir
-          git add -A
-          $msg = "build: update artifacts $(Get-Date -AsUTC -Format 'yyyy-MM-dd HH:mm:ss') UTC"
-          git diff --staged --quiet
-          if ($LASTEXITCODE -ne 0) {
-            git commit -m $msg
-            git push origin NET4.8
-            Write-Host "Pushed artifacts to NET4.8 branch"
-          } else {
-            Write-Host "No changes to push to NET4.8"
-          }
-          Pop-Location
-
-          git worktree remove $net48Dir --force
-
-      # ── Commit status.json back to main ──────────────────────────────────
-      - name: Update status.json on main
-        shell: pwsh
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add status.json
-          git diff --staged --quiet
-          if ($LASTEXITCODE -ne 0) {
-            git commit -m "chore: update build status [skip ci]"
-            git push origin HEAD
-            Write-Host "status.json committed to main"
-          } else {
-            Write-Host "status.json unchanged, nothing to commit"
-          }
+        run: pwsh -NoProfile -File ./scripts/publish.ps1

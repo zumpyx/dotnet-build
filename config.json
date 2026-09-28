@@ -52,5 +52,14 @@
     "repository": "https://github.com/Mayyhem/SharpSCCM.git",
     "branch": null,
     "enabled": true
+  },
+  {
+    "name": "winPEAS",
+    "repository": "https://github.com/peass-ng/PEASS-ng.git",
+    "branch": null,
+    "enabled": true,
+    "project": {
+      "buildScript": "scripts/tools/build-winpeas.ps1"
+    }
   }
 ]
