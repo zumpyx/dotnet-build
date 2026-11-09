@@ -16,15 +16,15 @@ SDK-style (.NET 5+/Core) tools ship as a single portable binary.
 
 | Tool | Repository | Framework | Engine | Status | Last Successful Build |
 |------|-----------|-----------|--------|--------|----------------------|
-| Rubeus | [Rubeus](https://github.com/GhostPack/Rubeus.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:46:17 |
-| Seatbelt | [Seatbelt](https://github.com/GhostPack/Seatbelt.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:46:38 |
-| SharpUp | [SharpUp](https://github.com/GhostPack/SharpUp.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:46:42 |
-| SharpHound | [SharpHound](https://github.com/BloodHoundAD/SharpHound.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:46:44 |
-| Certify | [Certify](https://github.com/GhostPack/Certify.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:47:31 |
-| ADSearch | [ADSearch](https://github.com/tomcarver16/ADSearch.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:47:43 |
-| SharpDPAPI | [SharpDPAPI](https://github.com/GhostPack/SharpDPAPI.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:47:48 |
-| SweetPotato | [SweetPotato](https://github.com/CCob/SweetPotato.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:47:53 |
-| SharpSCCM | [SharpSCCM](https://github.com/Mayyhem/SharpSCCM.git) | v4.8 | msbuild | ✅ Success | 11/02/2026 08:48:02 |
-| winPEAS | [winPEAS](https://github.com/peass-ng/PEASS-ng.git) | — | custom | ✅ Success | 11/02/2026 08:48:14 |
+| Rubeus | [Rubeus](https://github.com/GhostPack/Rubeus.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 08:59:38 |
+| Seatbelt | [Seatbelt](https://github.com/GhostPack/Seatbelt.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:00:01 |
+| SharpUp | [SharpUp](https://github.com/GhostPack/SharpUp.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:00:06 |
+| SharpHound | [SharpHound](https://github.com/BloodHoundAD/SharpHound.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:00:09 |
+| Certify | [Certify](https://github.com/GhostPack/Certify.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:01:03 |
+| ADSearch | [ADSearch](https://github.com/tomcarver16/ADSearch.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:01:19 |
+| SharpDPAPI | [SharpDPAPI](https://github.com/GhostPack/SharpDPAPI.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:01:26 |
+| SweetPotato | [SweetPotato](https://github.com/CCob/SweetPotato.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:01:35 |
+| SharpSCCM | [SharpSCCM](https://github.com/Mayyhem/SharpSCCM.git) | v4.8 | msbuild | ✅ Success | 11/09/2026 09:01:49 |
+| winPEAS | [winPEAS](https://github.com/peass-ng/PEASS-ng.git) | — | custom | ✅ Success | 11/09/2026 09:02:06 |
 
-_Last updated: 2026-11-02 08:50 UTC_
+_Last updated: 2026-11-09 09:05 UTC_
